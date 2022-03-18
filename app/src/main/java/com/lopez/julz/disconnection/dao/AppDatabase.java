@@ -5,7 +5,10 @@ import androidx.room.RoomDatabase;
 
 @Database(entities = {
         Users.class,
-}, version = 1)
+        DisconnectionList.class
+}, version = 2)
 public abstract class AppDatabase extends RoomDatabase {
     public abstract UsersDao usersDao();
+
+    public abstract DisconnectionListDao disconnectionListDao();
 }
