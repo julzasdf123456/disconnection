@@ -20,6 +20,8 @@ import com.lopez.julz.disconnection.api.RequestPlaceHolder;
 import com.lopez.julz.disconnection.api.RetrofitBuilder;
 import com.lopez.julz.disconnection.dao.AppDatabase;
 import com.lopez.julz.disconnection.dao.DisconnectionList;
+import com.lopez.julz.disconnection.dao.Settings;
+import com.lopez.julz.disconnection.helpers.AlertHelpers;
 import com.lopez.julz.disconnection.helpers.ObjectHelpers;
 
 import java.util.ArrayList;
@@ -39,6 +41,7 @@ public class DownloadActivity extends AppCompatActivity {
     private RequestPlaceHolder requestPlaceHolder;
 
     public AppDatabase db;
+    public Settings settings;
 
     public List<DisconnectionList> disconnectionListList;
 
@@ -56,21 +59,11 @@ public class DownloadActivity extends AppCompatActivity {
         getSupportActionBar().setDisplayShowHomeEnabled(true);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
-        retrofitBuilder = new RetrofitBuilder();
-        requestPlaceHolder = retrofitBuilder.getRetrofit().create(RequestPlaceHolder.class);
-
         db = Room.databaseBuilder(this,
                 AppDatabase.class, ObjectHelpers.dbName()).fallbackToDestructiveMigration().build();
-
-        downloadRecyclerview = findViewById(R.id.downloadRecyclerview);
         downloadBtn = findViewById(R.id.downloadBtn);
 
-        disconnectionListList = new ArrayList<>();
-        downloadAdapter = new DownloadAdapter(disconnectionListList, this);
-        downloadRecyclerview.setAdapter(downloadAdapter);
-        downloadRecyclerview.setLayoutManager(new LinearLayoutManager(this));
-
-        fetchDownloadableDisco();
+        new FetchSettings().execute();
 
         downloadBtn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -88,9 +81,9 @@ public class DownloadActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    public void fetchDownloadableDisco() {
+    public void fetchDownloadableDisco(String office) {
         try {
-            Call<List<DisconnectionList>> discoListCall = requestPlaceHolder.getDisconnectionList();
+            Call<List<DisconnectionList>> discoListCall = requestPlaceHolder.getDisconnectionList(office);
 
             discoListCall.enqueue(new Callback<List<DisconnectionList>>() {
                 @Override
@@ -172,6 +165,39 @@ public class DownloadActivity extends AppCompatActivity {
             super.onPostExecute(unused);
             Toast.makeText(DownloadActivity.this, "Disconnection list downloaded", Toast.LENGTH_SHORT).show();
             finish();
+        }
+    }
+
+    public class FetchSettings extends AsyncTask<Void, Void, Void> {
+
+        @Override
+        protected Void doInBackground(Void... voids) {
+            try {
+                settings = db.settingsDao().getSettings();
+            } catch (Exception e) {
+                Log.e("ERR_FETCH_SETTINGS", e.getMessage());
+            }
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void unused) {
+            super.onPostExecute(unused);
+            if (settings != null) {
+                retrofitBuilder = new RetrofitBuilder(settings.getDefaultServer());
+                requestPlaceHolder = retrofitBuilder.getRetrofit().create(RequestPlaceHolder.class);
+
+                downloadRecyclerview = findViewById(R.id.downloadRecyclerview);
+
+                disconnectionListList = new ArrayList<>();
+                downloadAdapter = new DownloadAdapter(disconnectionListList, DownloadActivity.this);
+                downloadRecyclerview.setAdapter(downloadAdapter);
+                downloadRecyclerview.setLayoutManager(new LinearLayoutManager(DownloadActivity.this));
+
+                fetchDownloadableDisco(settings.getDefaultOffice());
+            } else {
+                AlertHelpers.showMessageDialog(DownloadActivity.this, "Settings Not Initialized", "Failed to load settings. Go to settings and set all necessary parameters to continue.");
+            }
         }
     }
 }

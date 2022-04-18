@@ -19,7 +19,7 @@ public interface RequestPlaceHolder {
      * DISCONNECTION
      */
     @GET("get-disconnection-list")
-    Call<List<DisconnectionList>> getDisconnectionList();
+    Call<List<DisconnectionList>> getDisconnectionList(@Query("Office") String Office);
 
     @POST("receive-disconnection-uploads")
     Call<Void> uploadDisconnection(@Body DisconnectionList disconnectionList);

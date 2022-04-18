@@ -3,6 +3,7 @@ package com.lopez.julz.disconnection;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.room.Room;
 
 import android.os.AsyncTask;
@@ -15,10 +16,12 @@ import android.widget.Toast;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.progressindicator.CircularProgressIndicator;
+import com.lopez.julz.disconnection.adapters.DownloadAdapter;
 import com.lopez.julz.disconnection.api.RequestPlaceHolder;
 import com.lopez.julz.disconnection.api.RetrofitBuilder;
 import com.lopez.julz.disconnection.dao.AppDatabase;
 import com.lopez.julz.disconnection.dao.DisconnectionList;
+import com.lopez.julz.disconnection.dao.Settings;
 import com.lopez.julz.disconnection.helpers.AlertHelpers;
 import com.lopez.julz.disconnection.helpers.ObjectHelpers;
 
@@ -37,6 +40,7 @@ public class UploadDisconnectionActivity extends AppCompatActivity {
     public CircularProgressIndicator uploadProgress;
 
     public AppDatabase db;
+    public Settings settings;
 
     public List<DisconnectionList> disconnectionLists;
 
@@ -52,8 +56,7 @@ public class UploadDisconnectionActivity extends AppCompatActivity {
 
         db = Room.databaseBuilder(this, AppDatabase.class, ObjectHelpers.dbName()).fallbackToDestructiveMigration().build();
 
-        retrofitBuilder = new RetrofitBuilder();
-        requestPlaceHolder = retrofitBuilder.getRetrofit().create(RequestPlaceHolder.class);
+
 
         uploadToolbar = findViewById(R.id.uploadToolbar);
         setSupportActionBar(uploadToolbar);
@@ -62,13 +65,9 @@ public class UploadDisconnectionActivity extends AppCompatActivity {
         getSupportActionBar().setHomeAsUpIndicator(R.drawable.ic_baseline_arrow_back_24);
         getSupportActionBar().setDisplayShowTitleEnabled(false);
 
-        uploadableDiscoAccounts = findViewById(R.id.uploadableDiscoAccounts);
-        uploadStatusText = findViewById(R.id.uploadStatusText);
         uploadButton = findViewById(R.id.uploadButton);
-        uploadProgress = findViewById(R.id.uploadProgress);
-        disconnectionLists = new ArrayList<>();
 
-        new FetchData().execute();
+        new FetchSettings().execute();
 
         uploadButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -177,6 +176,38 @@ public class UploadDisconnectionActivity extends AppCompatActivity {
                 Toast.makeText(UploadDisconnectionActivity.this, "Upload Complete", Toast.LENGTH_SHORT).show();
                 uploadProgress.setProgress(0);
                 uploadStatusText.setText("Upload Complete.");
+            }
+        }
+    }
+
+    public class FetchSettings extends AsyncTask<Void, Void, Void> {
+
+        @Override
+        protected Void doInBackground(Void... voids) {
+            try {
+                settings = db.settingsDao().getSettings();
+            } catch (Exception e) {
+                Log.e("ERR_FETCH_SETTINGS", e.getMessage());
+            }
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void unused) {
+            super.onPostExecute(unused);
+            if (settings != null) {
+                retrofitBuilder = new RetrofitBuilder(settings.getDefaultServer());
+                requestPlaceHolder = retrofitBuilder.getRetrofit().create(RequestPlaceHolder.class);
+
+                uploadableDiscoAccounts = findViewById(R.id.uploadableDiscoAccounts);
+                uploadStatusText = findViewById(R.id.uploadStatusText);
+                uploadProgress = findViewById(R.id.uploadProgress);
+                disconnectionLists = new ArrayList<>();
+
+
+                new FetchData().execute();
+            } else {
+                AlertHelpers.showMessageDialog(UploadDisconnectionActivity.this, "Settings Not Initialized", "Failed to load settings. Go to settings and set all necessary parameters to continue.");
             }
         }
     }

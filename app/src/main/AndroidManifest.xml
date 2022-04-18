@@ -20,6 +20,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Disconnection">
         <activity
+            android:name=".SettingsActivity"
+            android:exported="true" />
+        <activity
             android:name=".UploadDisconnectionActivity"
             android:exported="true" />
         <activity

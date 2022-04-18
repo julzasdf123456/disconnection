@@ -33,7 +33,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_horizontal"
-                android:text="Read and Bill"/>
+                android:text="Disconnection"/>
 
             <View
                 android:layout_width="match_parent"
@@ -87,5 +87,17 @@
         </LinearLayout>
 
     </com.google.android.material.card.MaterialCardView>
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/settingsBtn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/ic_baseline_settings_24"
+        app:elevation="0dp"
+        android:elevation="0dp"
+        android:layout_gravity="right"
+        android:layout_marginTop="60dp"
+        android:layout_marginRight="15dp"
+        app:fabSize="mini"/>
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

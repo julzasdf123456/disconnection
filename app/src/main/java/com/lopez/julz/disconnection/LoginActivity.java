@@ -22,10 +22,12 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import com.google.android.material.button.MaterialButton;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
 import com.lopez.julz.disconnection.api.RequestPlaceHolder;
 import com.lopez.julz.disconnection.api.RetrofitBuilder;
 import com.lopez.julz.disconnection.dao.AppDatabase;
+import com.lopez.julz.disconnection.dao.Settings;
 import com.lopez.julz.disconnection.dao.Users;
 import com.lopez.julz.disconnection.dao.UsersDao;
 import com.lopez.julz.disconnection.helpers.ObjectHelpers;
@@ -44,6 +46,9 @@ public class LoginActivity extends AppCompatActivity {
     private RequestPlaceHolder requestPlaceHolder;
 
     public AppDatabase db;
+
+    public Settings settings;
+    public FloatingActionButton settingsBtn;
 
     private static final int WIFI_PERMISSION = 100;
     private static final int STORAGE_PERMISSION_READ = 101;
@@ -67,9 +72,7 @@ public class LoginActivity extends AppCompatActivity {
         username = findViewById(R.id.username);
         password = findViewById(R.id.password);
         login = findViewById(R.id.login);
-
-        retrofitBuilder = new RetrofitBuilder();
-        requestPlaceHolder = retrofitBuilder.getRetrofit().create(RequestPlaceHolder.class);
+        settingsBtn = findViewById(R.id.settingsBtn);
 
         db = Room.databaseBuilder(this,
                 AppDatabase.class, ObjectHelpers.dbName()).fallbackToDestructiveMigration().build();
@@ -104,6 +107,19 @@ public class LoginActivity extends AppCompatActivity {
                 }
             }
         });
+
+        settingsBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                startActivity(new Intent(LoginActivity.this, SettingsActivity.class));
+            }
+        });
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        new FetchSettings().execute();
     }
 
     private void login() {
@@ -252,6 +268,30 @@ public class LoginActivity extends AppCompatActivity {
                 Toast.makeText(LoginActivity.this, "Phone Permission Granted", Toast.LENGTH_SHORT).show();
             } else {
                 Toast.makeText(LoginActivity.this, "Phone Permission Denied", Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+
+    public class FetchSettings extends AsyncTask<Void, Void, Void> {
+
+        @Override
+        protected Void doInBackground(Void... voids) {
+            try {
+                settings = db.settingsDao().getSettings();
+            } catch (Exception e) {
+                Log.e("ERR_FETCH_SETTINGS", e.getMessage());
+            }
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void unused) {
+            super.onPostExecute(unused);
+            if (settings != null) {
+                retrofitBuilder = new RetrofitBuilder(settings.getDefaultServer());
+                requestPlaceHolder = retrofitBuilder.getRetrofit().create(RequestPlaceHolder.class);
+            } else {
+                startActivity(new Intent(LoginActivity.this, SettingsActivity.class));
             }
         }
     }
