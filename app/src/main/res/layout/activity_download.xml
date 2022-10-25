@@ -19,10 +19,178 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Active Downloadable Disconnections"
+                android:id="@+id/downloadTitle"
+                android:text="Filter Disconnections"
                 style="@style/TextAppearance.AppCompat.Title"/>
 
         </androidx.appcompat.widget.Toolbar>
+
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="15dp"
+            app:contentPadding="15dp"
+            android:layout_gravity="center_vertical"
+            app:cardElevation="3dp"
+            app:cardCornerRadius="15dp"
+            tools:ignore="MissingClass">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Billing Month"
+                    style="@style/TextAppearance.AppCompat.Subhead"/>
+
+                <Spinner
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:id="@+id/period"
+                    style="@style/TextAppearance.AppCompat.Subhead"
+                    android:layout_marginTop="5dp"
+                    android:layout_marginBottom="10dp"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Filter By Meter Reader"
+                    style="@style/TextAppearance.AppCompat.Subhead"/>
+
+                <TableLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                    <TableRow
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content">
+
+                        <EditText
+                            android:id="@+id/meterReaderId"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginLeft="5dp"
+                            android:layout_marginTop="5dp"
+                            android:layout_marginRight="5dp"
+                            android:layout_marginBottom="15dp"
+                            android:background="@drawable/options_custom_form"
+                            android:inputType="text"
+                            android:hint="Meter Reader Id"
+                            android:text=""
+                            android:paddingLeft="15dp"
+                            android:paddingTop="7dp"
+                            android:paddingRight="10dp"
+                            android:paddingBottom="7dp"
+                            android:enabled="false"
+                            android:layout_column="1"
+                            android:layout_weight="50"/>
+
+                        <EditText
+                            android:id="@+id/groupCode"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginLeft="5dp"
+                            android:layout_marginTop="5dp"
+                            android:layout_marginRight="5dp"
+                            android:layout_marginBottom="15dp"
+                            android:background="@drawable/options_custom_form"
+                            android:inputType="number"
+                            android:hint="Group Code/Day"
+                            android:text=""
+                            android:maxLength="2"
+                            android:paddingLeft="15dp"
+                            android:paddingTop="7dp"
+                            android:paddingRight="10dp"
+                            android:paddingBottom="7dp"
+                            android:layout_column="2"
+                            android:layout_weight="50"/>
+
+                    </TableRow>
+
+                </TableLayout>
+
+                <Button
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Filter"
+                    android:id="@+id/filterByMeterReaderBtn"/>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1px"
+                    android:background="@color/grey_100"
+                    android:layout_marginTop="10dp"
+                    android:layout_marginBottom="10dp"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Filter By Route"
+                    style="@style/TextAppearance.AppCompat.Subhead"/>
+
+                <TableLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                    <TableRow
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content">
+
+                        <EditText
+                            android:id="@+id/townCode"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginLeft="5dp"
+                            android:layout_marginTop="5dp"
+                            android:layout_marginRight="5dp"
+                            android:layout_marginBottom="15dp"
+                            android:background="@drawable/options_custom_form"
+                            android:inputType="number"
+                            android:hint="Area Code"
+                            android:text=""
+                            android:maxLength="2"
+                            android:paddingLeft="15dp"
+                            android:paddingTop="7dp"
+                            android:paddingRight="10dp"
+                            android:paddingBottom="7dp"
+                            android:layout_column="1"
+                            android:layout_weight="50"/>
+
+                        <EditText
+                            android:id="@+id/routeCode"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginLeft="5dp"
+                            android:layout_marginTop="5dp"
+                            android:layout_marginRight="5dp"
+                            android:layout_marginBottom="15dp"
+                            android:background="@drawable/options_custom_form"
+                            android:inputType="number"
+                            android:hint="Route Code"
+                            android:text=""
+                            android:maxLength="5"
+                            android:paddingLeft="15dp"
+                            android:paddingTop="7dp"
+                            android:paddingRight="10dp"
+                            android:paddingBottom="7dp"
+                            android:layout_column="2"
+                            android:layout_weight="50"/>
+
+                    </TableRow>
+
+                </TableLayout>
+
+                <Button
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Filter"
+                    android:id="@+id/filterByRouteBtn"/>
+            </LinearLayout>
+
+        </com.google.android.material.card.MaterialCardView>
 
         <androidx.recyclerview.widget.RecyclerView
             android:layout_width="match_parent"

@@ -38,6 +38,9 @@ public class DisconnectionList {
     @ColumnInfo(name = "ConsumerType")
     private String ConsumerType;
 
+    @ColumnInfo(name = "OldAccountNo")
+    private String OldAccountNo;
+
     @ColumnInfo(name = "MeterNumber")
     private String MeterNumber;
 
@@ -46,6 +49,21 @@ public class DisconnectionList {
 
     @ColumnInfo(name = "TicketId")
     private String TicketId;
+
+    @ColumnInfo(name = "Arrears")
+    private String Arrears;
+
+    @ColumnInfo(name = "ArrearsNoOfMonths")
+    private String ArrearsNoOfMonths;
+
+    @ColumnInfo(name = "GroupCode")
+    private String GroupCode;
+
+    @ColumnInfo(name = "MeterReader")
+    private String MeterReader;
+
+    @ColumnInfo(name = "Town")
+    private String Town;
 
     /**
      * DISCONNECTION HISTORY FIELDS
@@ -62,13 +80,16 @@ public class DisconnectionList {
     @ColumnInfo(name = "TimeDisconnected")
     private String TimeDisconnected;
 
+    @ColumnInfo(name = "LastReading")
+    private String LastReading;
+
     @ColumnInfo(name = "UserId")
     private String UserId;
 
     public DisconnectionList() {
     }
 
-    public DisconnectionList(@NonNull String id, String accountNumber, String serviceAccountName, String address, String isUploaded, String latitude, String longitude, String servicePeriod, String areaCode, String consumerType, String meterNumber, String sequenceCode, String ticketId, String latitudeCaptured, String longitudeCaptured, String dateDisconnected, String timeDisconnected, String userId) {
+    public DisconnectionList(@NonNull String id, String accountNumber, String serviceAccountName, String address, String isUploaded, String latitude, String longitude, String servicePeriod, String areaCode, String consumerType, String oldAccountNo, String meterNumber, String sequenceCode, String ticketId, String arrears, String arrearsNoOfMonths, String groupCode, String meterReader, String town, String latitudeCaptured, String longitudeCaptured, String dateDisconnected, String timeDisconnected, String lastReading, String userId) {
         this.id = id;
         AccountNumber = accountNumber;
         ServiceAccountName = serviceAccountName;
@@ -79,13 +100,20 @@ public class DisconnectionList {
         ServicePeriod = servicePeriod;
         AreaCode = areaCode;
         ConsumerType = consumerType;
+        OldAccountNo = oldAccountNo;
         MeterNumber = meterNumber;
         SequenceCode = sequenceCode;
         TicketId = ticketId;
+        Arrears = arrears;
+        ArrearsNoOfMonths = arrearsNoOfMonths;
+        GroupCode = groupCode;
+        MeterReader = meterReader;
+        Town = town;
         LatitudeCaptured = latitudeCaptured;
         LongitudeCaptured = longitudeCaptured;
         DateDisconnected = dateDisconnected;
         TimeDisconnected = timeDisconnected;
+        LastReading = lastReading;
         UserId = userId;
     }
 
@@ -232,5 +260,61 @@ public class DisconnectionList {
 
     public void setUserId(String userId) {
         UserId = userId;
+    }
+
+    public String getOldAccountNo() {
+        return OldAccountNo;
+    }
+
+    public void setOldAccountNo(String oldAccountNo) {
+        OldAccountNo = oldAccountNo;
+    }
+
+    public String getLastReading() {
+        return LastReading;
+    }
+
+    public void setLastReading(String lastReading) {
+        LastReading = lastReading;
+    }
+
+    public String getArrears() {
+        return Arrears;
+    }
+
+    public void setArrears(String arrears) {
+        Arrears = arrears;
+    }
+
+    public String getArrearsNoOfMonths() {
+        return ArrearsNoOfMonths;
+    }
+
+    public void setArrearsNoOfMonths(String arrearsNoOfMonths) {
+        ArrearsNoOfMonths = arrearsNoOfMonths;
+    }
+
+    public String getGroupCode() {
+        return GroupCode;
+    }
+
+    public void setGroupCode(String groupCode) {
+        GroupCode = groupCode;
+    }
+
+    public String getMeterReader() {
+        return MeterReader;
+    }
+
+    public void setMeterReader(String meterReader) {
+        MeterReader = meterReader;
+    }
+
+    public String getTown() {
+        return Town;
+    }
+
+    public void setTown(String town) {
+        Town = town;
     }
 }

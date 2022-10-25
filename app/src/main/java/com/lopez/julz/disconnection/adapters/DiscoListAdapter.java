@@ -45,12 +45,12 @@ public class DiscoListAdapter  extends RecyclerView.Adapter<DiscoListAdapter.Vie
     public void onBindViewHolder(@NonNull DiscoListAdapter.ViewHolder holder, int position) {
         DisconnectionList disconnectionList = disconnectionLists.get(position);
 
-        holder.accountNo.setText(disconnectionList.getAccountNumber());
+        holder.accountNo.setText(disconnectionList.getOldAccountNo() + " | Meter No: " + disconnectionList.getMeterNumber() + " | Seq. No: " + disconnectionList.getSequenceCode());
         holder.consumerName.setText(disconnectionList.getServiceAccountName());
         holder.address.setText(disconnectionList.getAddress());
-        holder.period.setText(ObjectHelpers.formatShortDate(disconnectionList.getServicePeriod()));
+        holder.period.setText(ObjectHelpers.formatShortDate(disconnectionList.getServicePeriod()) + " | Arrears: " + (disconnectionList.getArrears() != null ? ObjectHelpers.roundTwo(Double.valueOf(disconnectionList.getArrears())) : "0"));
 
-        if (disconnectionList.getIsUploaded().equals("Uploadable")) {
+        if (disconnectionList.getIsUploaded().equals("UPLOADABLE")) {
             holder.consumerName.setCompoundDrawablesWithIntrinsicBounds(context.getResources().getDrawable(R.drawable.ic_baseline_check_circle_18), null, null, null);
         } else {
             holder.consumerName.setCompoundDrawablesWithIntrinsicBounds(null, null, null, null);
@@ -59,14 +59,11 @@ public class DiscoListAdapter  extends RecyclerView.Adapter<DiscoListAdapter.Vie
         holder.parent.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (disconnectionList.getIsUploaded().equals("Uploadable")) {
-                } else {
-                    Intent intent = new Intent(context, DisconnectionFormActivity.class);
-                    intent.putExtra("USERID", userId);
-                    intent.putExtra("ACCTNO", disconnectionList.getAccountNumber());
-                    intent.putExtra("PERIOD", disconnectionList.getServicePeriod());
-                    context.startActivity(intent);
-                }
+                Intent intent = new Intent(context, DisconnectionFormActivity.class);
+                intent.putExtra("USERID", userId);
+                intent.putExtra("ACCTNO", disconnectionList.getAccountNumber());
+                intent.putExtra("PERIOD", disconnectionList.getServicePeriod());
+                context.startActivity(intent);
             }
         });
     }

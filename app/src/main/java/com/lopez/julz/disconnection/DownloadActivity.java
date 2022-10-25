@@ -12,6 +12,11 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.Spinner;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
@@ -21,6 +26,7 @@ import com.lopez.julz.disconnection.api.RetrofitBuilder;
 import com.lopez.julz.disconnection.dao.AppDatabase;
 import com.lopez.julz.disconnection.dao.DisconnectionList;
 import com.lopez.julz.disconnection.dao.Settings;
+import com.lopez.julz.disconnection.dao.Users;
 import com.lopez.julz.disconnection.helpers.AlertHelpers;
 import com.lopez.julz.disconnection.helpers.ObjectHelpers;
 
@@ -46,6 +52,11 @@ public class DownloadActivity extends AppCompatActivity {
     public List<DisconnectionList> disconnectionListList;
 
     public FloatingActionButton downloadBtn;
+    public Button filterByMeterReaderBtn, filterByRouteBtn;
+    public EditText meterReaderId, groupCode, townCode, routeCode;
+    public TextView downloadTitle;
+    public String userId;
+    public Spinner period;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,11 +70,50 @@ public class DownloadActivity extends AppCompatActivity {
         getSupportActionBar().setDisplayShowHomeEnabled(true);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
+        userId = getIntent().getExtras().getString("USERID");
+
         db = Room.databaseBuilder(this,
                 AppDatabase.class, ObjectHelpers.dbName()).fallbackToDestructiveMigration().build();
         downloadBtn = findViewById(R.id.downloadBtn);
+        filterByMeterReaderBtn = findViewById(R.id.filterByMeterReaderBtn);
+        filterByRouteBtn = findViewById(R.id.filterByRouteBtn);
+        meterReaderId = findViewById(R.id.meterReaderId);
+        groupCode = findViewById(R.id.groupCode);
+        townCode = findViewById(R.id.townCode);
+        routeCode = findViewById(R.id.routeCode);
+        period = findViewById(R.id.period);
+        downloadTitle = findViewById(R.id.downloadTitle);
+
+        meterReaderId.setText(userId);
+        addPrevMonths();
 
         new FetchSettings().execute();
+
+        filterByMeterReaderBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Object group = groupCode.getText();
+                if (!group.toString().isEmpty()) {
+                    fetchByMeterReader();
+                } else {
+                    AlertHelpers.showMessageDialog(DownloadActivity.this, "No Group Code", "Please provide group code/day to continue.");
+                }
+            }
+        });
+
+        filterByRouteBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Object town = townCode.getText();
+                Object area = routeCode.getText();
+                if (town.toString().isEmpty() | area.toString().isEmpty()) {
+                    AlertHelpers.showMessageDialog(DownloadActivity.this, "Incomplete Data Supplied", "Please provide TOWN CODE and ROUTE CODE.");
+                } else {
+                    fetchByRoute();
+
+                }
+            }
+        });
 
         downloadBtn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -73,12 +123,74 @@ public class DownloadActivity extends AppCompatActivity {
         });
     }
 
+    public void addPrevMonths() {
+        String[] monthsGet = ObjectHelpers.getPreviousMonths(5);
+
+        ArrayAdapter<String> monthAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, monthsGet);
+        monthAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        period.setAdapter(monthAdapter);
+    }
+
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         if (item.getItemId() == android.R.id.home) {
             finish();
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    public void fetchByRoute() {
+        try {
+            Call<List<DisconnectionList>> disListCall = requestPlaceHolder.getDisconnectionListByRoute(townCode.getText().toString(), period.getSelectedItem().toString(), routeCode.getText().toString());
+
+            disListCall.enqueue(new Callback<List<DisconnectionList>>() {
+                @Override
+                public void onResponse(Call<List<DisconnectionList>> call, Response<List<DisconnectionList>> response) {
+                    if (response.isSuccessful()) {
+                        new AssessDownloaded().execute(response.body());
+                    } else {
+                        AlertHelpers.showMessageDialog(DownloadActivity.this, "Error Getting Data", response.raw() + "\n" + response.message());
+                        Log.e("ERR_FETCH_DISCO_DL", response.raw() + "");
+                    }
+                }
+
+                @Override
+                public void onFailure(Call<List<DisconnectionList>> call, Throwable t) {
+                    AlertHelpers.showMessageDialog(DownloadActivity.this, "Error Getting Data", t.getMessage());
+                    Log.e("ERR_FETCH_DISCO_DL", t.getMessage() + "");
+                }
+            });
+        } catch (Exception e) {
+            Log.e("ERR_GET_LIST_B_MR", e.getMessage());
+            AlertHelpers.showMessageDialog(DownloadActivity.this, "Error Getting Data", e.getMessage());
+        }
+    }
+
+    public void fetchByMeterReader() {
+        try {
+            Call<List<DisconnectionList>> disListCall = requestPlaceHolder.getDisconnectionListByMeterReader(meterReaderId.getText().toString(), period.getSelectedItem().toString(), groupCode.getText().toString());
+
+            disListCall.enqueue(new Callback<List<DisconnectionList>>() {
+                @Override
+                public void onResponse(Call<List<DisconnectionList>> call, Response<List<DisconnectionList>> response) {
+                    if (response.isSuccessful()) {
+                        new AssessDownloaded().execute(response.body());
+                    } else {
+                        AlertHelpers.showMessageDialog(DownloadActivity.this, "Error Getting Data", response.raw() + "\n" + response.message());
+                        Log.e("ERR_FETCH_DISCO_DL", response.raw() + "");
+                    }
+                }
+
+                @Override
+                public void onFailure(Call<List<DisconnectionList>> call, Throwable t) {
+                    AlertHelpers.showMessageDialog(DownloadActivity.this, "Error Getting Data", t.getMessage());
+                    Log.e("ERR_FETCH_DISCO_DL", t.getMessage() + "");
+                }
+            });
+        } catch (Exception e) {
+            Log.e("ERR_GET_LIST_B_MR", e.getMessage());
+            AlertHelpers.showMessageDialog(DownloadActivity.this, "Error Getting Data", e.getMessage());
+        }
     }
 
     public void fetchDownloadableDisco(String office) {
@@ -111,6 +223,12 @@ public class DownloadActivity extends AppCompatActivity {
     public class AssessDownloaded extends AsyncTask<List<DisconnectionList>, Void, Void> {
 
         @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            disconnectionListList.clear();
+        }
+
+        @Override
         protected Void doInBackground(List<DisconnectionList>... lists) {
             try {
                 if (lists != null) {
@@ -137,6 +255,7 @@ public class DownloadActivity extends AppCompatActivity {
         protected void onPostExecute(Void unused) {
             super.onPostExecute(unused);
             downloadAdapter.notifyDataSetChanged();
+            downloadTitle.setText(disconnectionListList.size() + " Accounts to Be Disconnected");
         }
     }
 
@@ -194,7 +313,7 @@ public class DownloadActivity extends AppCompatActivity {
                 downloadRecyclerview.setAdapter(downloadAdapter);
                 downloadRecyclerview.setLayoutManager(new LinearLayoutManager(DownloadActivity.this));
 
-                fetchDownloadableDisco(settings.getDefaultOffice());
+//                fetchDownloadableDisco(settings.getDefaultOffice());
             } else {
                 AlertHelpers.showMessageDialog(DownloadActivity.this, "Settings Not Initialized", "Failed to load settings. Go to settings and set all necessary parameters to continue.");
             }

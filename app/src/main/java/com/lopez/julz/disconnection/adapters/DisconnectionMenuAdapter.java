@@ -14,6 +14,7 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.card.MaterialCardView;
+import com.lopez.julz.disconnection.DiscoViewGroup;
 import com.lopez.julz.disconnection.DisconnectionListActivity;
 import com.lopez.julz.disconnection.DownloadActivity;
 import com.lopez.julz.disconnection.R;
@@ -55,11 +56,13 @@ public class DisconnectionMenuAdapter  extends RecyclerView.Adapter<Disconnectio
             @Override
             public void onClick(View view) {
                 if (position == 0) { // download
-                    context.startActivity(new Intent(context, DownloadActivity.class));
+                    Intent intent = new Intent(context, DownloadActivity.class);
+                    intent.putExtra("USERID", userId);
+                    context.startActivity(intent);
                 } else if (position == 1) { // upload
                     context.startActivity(new Intent(context, UploadDisconnectionActivity.class));
                 } else if (position == 2) { // disconnection list
-                    Intent intent = new Intent(context, DisconnectionListActivity.class);
+                    Intent intent = new Intent(context, DiscoViewGroup.class);
                     intent.putExtra("USERID", userId);
                     context.startActivity(intent);
                 }

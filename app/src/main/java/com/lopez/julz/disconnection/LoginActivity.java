@@ -1,5 +1,7 @@
 package com.lopez.julz.disconnection;
 
+import static com.lopez.julz.disconnection.helpers.ObjectHelpers.hasPermissions;
+
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
@@ -33,6 +35,8 @@ import com.lopez.julz.disconnection.dao.UsersDao;
 import com.lopez.julz.disconnection.helpers.ObjectHelpers;
 import com.lopez.julz.disconnection.objects.Login;
 
+import java.lang.reflect.Method;
+
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -57,6 +61,22 @@ public class LoginActivity extends AppCompatActivity {
     private static final int LOCATION = 104;
     private static final int PHONE = 105;
 
+    int PERMISSION_ALL = 1;
+    String[] PERMISSIONS = {
+            Manifest.permission.READ_PHONE_STATE,
+            android.Manifest.permission.READ_EXTERNAL_STORAGE,
+            android.Manifest.permission.WRITE_EXTERNAL_STORAGE,
+            android.Manifest.permission.CAMERA,
+            android.Manifest.permission.ACCESS_FINE_LOCATION,
+            android.Manifest.permission.ACCESS_COARSE_LOCATION,
+            Manifest.permission.ACCESS_WIFI_STATE,
+            Manifest.permission.BLUETOOTH_ADMIN,
+            Manifest.permission.BLUETOOTH,
+            Manifest.permission.BLUETOOTH_CONNECT,
+            Manifest.permission.BLUETOOTH_SCAN,
+            Manifest.permission.ACCESS_NETWORK_STATE
+    };
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -77,36 +97,33 @@ public class LoginActivity extends AppCompatActivity {
         db = Room.databaseBuilder(this,
                 AppDatabase.class, ObjectHelpers.dbName()).fallbackToDestructiveMigration().build();
 
-        checkPermission(Manifest.permission.CAMERA, CAMERA);
-        checkPermission(Manifest.permission.ACCESS_WIFI_STATE, WIFI_PERMISSION);
-        checkPermission(Manifest.permission.READ_EXTERNAL_STORAGE, STORAGE_PERMISSION_READ);
-        checkPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE, STORAGE_PERMISSION_WRITE);
-        checkPermission(Manifest.permission.ACCESS_FINE_LOCATION, LOCATION);
-        checkPermission(Manifest.permission.READ_PHONE_STATE, PHONE);
+        if (!hasPermissions(this, PERMISSIONS)) {
+            ActivityCompat.requestPermissions(this, PERMISSIONS, PERMISSION_ALL);
+        }
 
-        login.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                ConnectivityManager connManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
-                NetworkInfo mWifi = connManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
-
-                if (mWifi.isConnected()) {
-                    // PERFORM ONLINE LOGIN
-                    if (username.getText().equals("") | null == username.getText() | password.getText().equals("") | null == password.getText()) {
-                        Snackbar.make(username, "Please fill in the fields to login", Snackbar.LENGTH_LONG).show();
-                    } else {
-                        login();
-                    }
-                } else {
-                    // PERFORM OFFLINE LOGIN
-                    if (username.getText().equals("") | null == username.getText() | password.getText().equals("") | null == password.getText()) {
-                        Snackbar.make(username, "Please fill in the fields to login", Snackbar.LENGTH_LONG).show();
-                    } else {
-                        new LoginOffline().execute(username.getText().toString(), password.getText().toString());
-                    }
-                }
-            }
-        });
+//        login.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View view) {
+//                ConnectivityManager connManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+//                NetworkInfo mWifi = connManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
+//
+//                if (mWifi.isConnected()) {
+//                    // PERFORM ONLINE LOGIN
+//                    if (username.getText().equals("") | null == username.getText() | password.getText().equals("") | null == password.getText()) {
+//                        Snackbar.make(username, "Please fill in the fields to login", Snackbar.LENGTH_LONG).show();
+//                    } else {
+//                        login();
+//                    }
+//                } else {
+//                    // PERFORM OFFLINE LOGIN
+//                    if (username.getText().equals("") | null == username.getText() | password.getText().equals("") | null == password.getText()) {
+//                        Snackbar.make(username, "Please fill in the fields to login", Snackbar.LENGTH_LONG).show();
+//                    } else {
+//                        new LoginOffline().execute(username.getText().toString(), password.getText().toString());
+//                    }
+//                }
+//            }
+//        });
 
         settingsBtn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -171,8 +188,12 @@ public class LoginActivity extends AppCompatActivity {
             Users existing = usersDao.getOne(strings[1], strings[2]);
 
             if (existing == null) {
-                Users users = new Users(strings[0], strings[1], strings[2]);
+                Users users = new Users(strings[0], strings[1], strings[2], "YES");
+                users.setLoggedIn("YES");
                 usersDao.insertAll(users);
+            } else {
+                existing.setLoggedIn("YES");
+                usersDao.updateAll(existing);
             }
 
             return null;
@@ -213,64 +234,6 @@ public class LoginActivity extends AppCompatActivity {
         }
     }
 
-    public void checkPermission(String permission, int requestCode) {
-        if (ContextCompat.checkSelfPermission(LoginActivity.this, permission) == PackageManager.PERMISSION_DENIED) {
-
-            // Requesting the permission
-            ActivityCompat.requestPermissions(LoginActivity.this, new String[] { permission }, requestCode);
-        }
-        else {
-//            Toast.makeText(LoginActivity.this, "Permission already granted", Toast.LENGTH_SHORT).show();
-        }
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == WIFI_PERMISSION) {
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                Toast.makeText(LoginActivity.this, "Wi-Fi Permission Granted", Toast.LENGTH_SHORT) .show();
-            }
-            else {
-                Toast.makeText(LoginActivity.this, "Wi-Fi Permission Denied", Toast.LENGTH_SHORT) .show();
-            }
-        } else if (requestCode == STORAGE_PERMISSION_READ) {
-            if (grantResults.length > 0
-                    && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                Toast.makeText(LoginActivity.this, "Storage Permission Granted", Toast.LENGTH_SHORT).show();
-            } else {
-                Toast.makeText(LoginActivity.this, "Storage Permission Denied", Toast.LENGTH_SHORT).show();
-            }
-        } else if (requestCode == STORAGE_PERMISSION_WRITE) {
-            if (grantResults.length > 0
-                    && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                Toast.makeText(LoginActivity.this, "Storage Permission Granted", Toast.LENGTH_SHORT).show();
-            } else {
-                Toast.makeText(LoginActivity.this, "Storage Permission Denied", Toast.LENGTH_SHORT).show();
-            }
-        } else if (requestCode == CAMERA) {
-            if (grantResults.length > 0
-                    && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                Toast.makeText(LoginActivity.this, "Camera Permission Granted", Toast.LENGTH_SHORT).show();
-            } else {
-                Toast.makeText(LoginActivity.this, "Camera Permission Denied", Toast.LENGTH_SHORT).show();
-            }
-        } else if (requestCode == LOCATION) {
-            if (grantResults.length > 0
-                    && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                Toast.makeText(LoginActivity.this, "Location Permission Granted", Toast.LENGTH_SHORT).show();
-            } else {
-                Toast.makeText(LoginActivity.this, "Location Permission Denied", Toast.LENGTH_SHORT).show();
-            }
-        } else if (requestCode == PHONE) {
-            if (grantResults.length > 0
-                    && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                Toast.makeText(LoginActivity.this, "Phone Permission Granted", Toast.LENGTH_SHORT).show();
-            } else {
-                Toast.makeText(LoginActivity.this, "Phone Permission Denied", Toast.LENGTH_SHORT).show();
-            }
-        }
-    }
 
     public class FetchSettings extends AsyncTask<Void, Void, Void> {
 
@@ -290,8 +253,100 @@ public class LoginActivity extends AppCompatActivity {
             if (settings != null) {
                 retrofitBuilder = new RetrofitBuilder(settings.getDefaultServer());
                 requestPlaceHolder = retrofitBuilder.getRetrofit().create(RequestPlaceHolder.class);
+
+                new CommenceAutoLogin().execute();
             } else {
                 startActivity(new Intent(LoginActivity.this, SettingsActivity.class));
+            }
+        }
+    }
+
+    public class CommenceAutoLogin extends AsyncTask<Void, Void, Void> {
+
+        boolean doesUserExists = false;
+        String userid = "";
+        String usernameT, passwordT;
+
+        @Override
+        protected Void doInBackground(Void... voids) {
+            try {
+                UsersDao usersDao = db.usersDao();
+                Users existing = usersDao.getFirst();
+
+                if (existing == null) {
+                    doesUserExists = false;
+                } else {
+                    if (existing.getLoggedIn() != null && existing.getLoggedIn().equals("YES")) {
+                        doesUserExists = true;
+                        userid = existing.getId();
+                        usernameT = existing.getUsername();
+                        passwordT = existing.getPassword();
+                    } else {
+                        doesUserExists = false;
+                    }
+
+                }
+            } catch (Exception e) {
+                Log.e("ERR_AUTO_LGN", e.getMessage());
+            }
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void unused) {
+            super.onPostExecute(unused);
+            if (doesUserExists) {
+                Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+                intent.putExtra("USERID", userid);
+                startActivity(intent);
+                finish();
+            } else {
+                login.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        ConnectivityManager connManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+                        NetworkInfo mWifi = connManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
+
+                        // CHECK MOBILE DATA
+                        boolean mobileDataEnabled = false;
+                        try {
+                            Class cmClass = Class.forName(connManager.getClass().getName());
+                            Method method = cmClass.getDeclaredMethod("getMobileDataEnabled");
+                            method.setAccessible(true); // Make the method callable
+                            // get the setting for "mobile data"
+                            mobileDataEnabled = (Boolean)method.invoke(connManager);
+                        } catch (Exception e) {
+                            // Some problem accessible private API
+                            // TODO do whatever error handling you want here
+                        }
+
+                        if (mWifi.isConnected()) {
+                            // PERFORM ONLINE LOGIN USING WIFI
+                            if (username.getText().equals("") | null == username.getText() | password.getText().equals("") | null == password.getText()) {
+                                Snackbar.make(username, "Please fill in the fields to login", Snackbar.LENGTH_LONG).show();
+                            } else {
+                                login();
+                            }
+                        } else {
+                            if (mobileDataEnabled) {
+                                // PERFORM ONLINE LOGIN USING MOBILE DATA
+                                if (username.getText().equals("") | null == username.getText() | password.getText().equals("") | null == password.getText()) {
+                                    Snackbar.make(username, "Please fill in the fields to login", Snackbar.LENGTH_LONG).show();
+                                } else {
+                                    login();
+                                }
+                            } else {
+                                // PERFORM OFFLINE LOGIN
+                                if (username.getText().equals("") | null == username.getText() | password.getText().equals("") | null == password.getText()) {
+                                    Snackbar.make(username, "Please fill in the fields to login", Snackbar.LENGTH_LONG).show();
+                                } else {
+                                    new LoginOffline().execute(username.getText().toString(), password.getText().toString());
+                                }
+                            }
+
+                        }
+                    }
+                });
             }
         }
     }

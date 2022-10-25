@@ -24,6 +24,23 @@
 
         </androidx.appcompat.widget.Toolbar>
 
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="10dp"
+            app:contentPadding="10dp">
+
+            <EditText
+                android:id="@+id/searchList"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Search Acct Name, Acct No, Meter No"
+                android:inputType="text"
+                android:background="@drawable/options_custom_form"
+                android:padding="8dp" />
+
+        </com.google.android.material.card.MaterialCardView>
+
         <androidx.recyclerview.widget.RecyclerView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

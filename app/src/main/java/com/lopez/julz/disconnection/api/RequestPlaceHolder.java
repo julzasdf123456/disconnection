@@ -21,6 +21,12 @@ public interface RequestPlaceHolder {
     @GET("get-disconnection-list")
     Call<List<DisconnectionList>> getDisconnectionList(@Query("Office") String Office);
 
+    @GET("get-disconnection-list-by-meter-reader")
+    Call<List<DisconnectionList>> getDisconnectionListByMeterReader(@Query("MeterReader") String MeterReader, @Query("ServicePeriod") String ServicePeriod, @Query("GroupCode") String GroupCode);
+
+    @GET("get-disconnection-list-by-route")
+    Call<List<DisconnectionList>> getDisconnectionListByRoute(@Query("Town") String Town, @Query("ServicePeriod") String ServicePeriod, @Query("Route") String Route);
+
     @POST("receive-disconnection-uploads")
     Call<Void> uploadDisconnection(@Body DisconnectionList disconnectionList);
 }

@@ -39,7 +39,7 @@ public class DownloadAdapter extends RecyclerView.Adapter<DownloadAdapter.ViewHo
     public void onBindViewHolder(@NonNull DownloadAdapter.ViewHolder holder, int position) {
         DisconnectionList disconnectionList = disconnectionLists.get(position);
 
-        holder.accountNo.setText(disconnectionList.getAccountNumber());
+        holder.accountNo.setText(disconnectionList.getOldAccountNo());
         holder.consumerName.setText(disconnectionList.getServiceAccountName());
         holder.address.setText(disconnectionList.getAddress());
         holder.period.setText(ObjectHelpers.formatShortDate(disconnectionList.getServicePeriod()));

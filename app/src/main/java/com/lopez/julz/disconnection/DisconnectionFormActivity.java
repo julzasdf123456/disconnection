@@ -12,6 +12,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.EditText;
 import android.widget.RadioButton;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -45,7 +46,7 @@ import java.util.List;
 public class DisconnectionFormActivity extends AppCompatActivity implements OnMapReadyCallback, PermissionsListener {
 
     public TextView accountName, accountNo;
-    public TextView sequenceCode, accountType, billingMonth;
+    public TextView sequenceCode, accountType, billingMonth, meterNo, arrears;
 
     public RadioButton disconnectButton;
 
@@ -65,6 +66,8 @@ public class DisconnectionFormActivity extends AppCompatActivity implements OnMa
     public String userId, acctNo, period;
 
     public DisconnectionList disconnectionList;
+
+    public EditText lastReading;
 
     public AppDatabase db;
 
@@ -89,6 +92,7 @@ public class DisconnectionFormActivity extends AppCompatActivity implements OnMa
         getSupportActionBar().setDisplayShowHomeEnabled(true);
 
         accountName = findViewById(R.id.accountName);
+        lastReading = findViewById(R.id.lastReading);
         accountNo = findViewById(R.id.accountNo);
         sequenceCode = findViewById(R.id.sequenceCode);
         accountType = findViewById(R.id.accountType);
@@ -96,6 +100,8 @@ public class DisconnectionFormActivity extends AppCompatActivity implements OnMa
         saveBtn = findViewById(R.id.saveDisconnectionData);
         mapView = findViewById(R.id.mapviewDisconnectionForm);
         billingMonth = findViewById(R.id.period);
+        meterNo = findViewById(R.id.meterNo);
+        arrears = findViewById(R.id.arrears);
 
         // MAP
         mapView.onCreate(savedInstanceState);
@@ -106,21 +112,20 @@ public class DisconnectionFormActivity extends AppCompatActivity implements OnMa
         saveBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (disconnectButton.isChecked()) {
-                    disconnectionList.setIsUploaded("Uploadable");
-
-                    if (locationComponent != null) {
-                        try {
-                            disconnectionList.setLatitudeCaptured(locationComponent.getLastKnownLocation().getLatitude() + "");
-                            disconnectionList.setLongitudeCaptured(locationComponent.getLastKnownLocation().getLongitude() + "");
-                        } catch (Exception e) {
-                            Log.e("ERR_GET_LOC", e.getMessage());
-                        }
+                if (locationComponent != null) {
+                    try {
+                        disconnectionList.setLatitudeCaptured(locationComponent.getLastKnownLocation().getLatitude() + "");
+                        disconnectionList.setLongitudeCaptured(locationComponent.getLastKnownLocation().getLongitude() + "");
+                    } catch (Exception e) {
+                        Log.e("ERR_GET_LOC", e.getMessage());
                     }
-
-                    disconnectionList.setDateDisconnected(ObjectHelpers.getCurrentDate());
-                    disconnectionList.setTimeDisconnected(ObjectHelpers.getCurrentTime());
-                    disconnectionList.setUserId(userId);
+                }
+                disconnectionList.setLastReading(lastReading.getText().toString());
+                disconnectionList.setDateDisconnected(ObjectHelpers.getCurrentDate());
+                disconnectionList.setTimeDisconnected(ObjectHelpers.getCurrentTime());
+                disconnectionList.setUserId(userId);
+                if (disconnectButton.isChecked()) {
+                    disconnectionList.setIsUploaded("UPLOADABLE");
                 } else {
                     disconnectionList.setIsUploaded("No");
                 }
@@ -351,10 +356,13 @@ public class DisconnectionFormActivity extends AppCompatActivity implements OnMa
 
             if (disconnectionList != null) {
                 accountName.setText(disconnectionList.getServiceAccountName());
-                accountNo.setText(acctNo);
+                accountNo.setText(disconnectionList.getOldAccountNo());
                 sequenceCode.setText(disconnectionList.getSequenceCode());
                 accountType.setText(disconnectionList.getConsumerType());
+                meterNo.setText(disconnectionList.getMeterNumber());
                 billingMonth.setText(ObjectHelpers.formatShortDate(disconnectionList.getServicePeriod()));
+                lastReading.setText(disconnectionList.getLastReading());
+                arrears.setText(disconnectionList.getArrears() != null ? ("P " + ObjectHelpers.roundTwo(Double.valueOf(disconnectionList.getArrears()))) : "0");
 
                 if (disconnectionList.getIsUploaded() != null && disconnectionList.getIsUploaded().equals("UPLOADABLE")) {
                     saveBtn.setEnabled(false);

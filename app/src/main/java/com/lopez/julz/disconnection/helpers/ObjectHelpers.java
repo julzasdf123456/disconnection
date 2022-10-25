@@ -1,9 +1,13 @@
 package com.lopez.julz.disconnection.helpers;
 
+import android.content.Context;
+import android.content.pm.PackageManager;
 import android.util.Log;
 import android.view.View;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
+
+import androidx.core.app.ActivityCompat;
 
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
@@ -195,5 +199,16 @@ public class ObjectHelpers {
         } catch (Exception e) {
             return new String[]{};
         }
+    }
+
+    public static boolean hasPermissions(Context context, String... permissions) {
+        if (context != null && permissions != null) {
+            for (String permission : permissions) {
+                if (ActivityCompat.checkSelfPermission(context, permission) != PackageManager.PERMISSION_GRANTED) {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 }
