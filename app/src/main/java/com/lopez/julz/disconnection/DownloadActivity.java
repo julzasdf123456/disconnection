@@ -58,6 +58,8 @@ public class DownloadActivity extends AppCompatActivity {
     public String userId;
     public Spinner period;
 
+    public String getClicked = "";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -95,6 +97,7 @@ public class DownloadActivity extends AppCompatActivity {
                 Object group = groupCode.getText();
                 if (!group.toString().isEmpty()) {
                     fetchByMeterReader();
+                    getClicked = "mreader";
                 } else {
                     AlertHelpers.showMessageDialog(DownloadActivity.this, "No Group Code", "Please provide group code/day to continue.");
                 }
@@ -110,7 +113,7 @@ public class DownloadActivity extends AppCompatActivity {
                     AlertHelpers.showMessageDialog(DownloadActivity.this, "Incomplete Data Supplied", "Please provide TOWN CODE and ROUTE CODE.");
                 } else {
                     fetchByRoute();
-
+                    getClicked = "route";
                 }
             }
         });
@@ -124,7 +127,7 @@ public class DownloadActivity extends AppCompatActivity {
     }
 
     public void addPrevMonths() {
-        String[] monthsGet = ObjectHelpers.getPreviousMonths(5);
+        String[] monthsGet = ObjectHelpers.getPreviousMonths(12);
 
         ArrayAdapter<String> monthAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, monthsGet);
         monthAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
@@ -157,7 +160,8 @@ public class DownloadActivity extends AppCompatActivity {
                 @Override
                 public void onFailure(Call<List<DisconnectionList>> call, Throwable t) {
                     AlertHelpers.showMessageDialog(DownloadActivity.this, "Error Getting Data", t.getMessage());
-                    Log.e("ERR_FETCH_DISCO_DL", t.getMessage() + "");
+                    Log.e("ERR_FETCH_DISCO_DL", t.getMessage() + "" + t.getLocalizedMessage());
+                    t.printStackTrace();
                 }
             });
         } catch (Exception e) {
@@ -282,6 +286,45 @@ public class DownloadActivity extends AppCompatActivity {
         @Override
         protected void onPostExecute(Void unused) {
             super.onPostExecute(unused);
+            if (getClicked.equals("mreader")) {
+                Call<Void> updateDownloaded = requestPlaceHolder.updateDisconnectionListByMeterReader(meterReaderId.getText().toString(), period.getSelectedItem().toString(), groupCode.getText().toString());
+                updateDownloaded.enqueue(new Callback<Void>() {
+                    @Override
+                    public void onResponse(Call<Void> call, Response<Void> response) {
+                        if (response.isSuccessful()) {
+                            Log.e("UPDATE_SUCC", "Accounts Updated");
+                        } else {
+                            Toast.makeText(DownloadActivity.this, "Error updating accounts", Toast.LENGTH_SHORT).show();
+                            Log.e("ERR_UPDT_QRY", response.message() + "\n" + response.raw() + " \n" + response.body());
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(Call<Void> call, Throwable t) {
+                        Toast.makeText(DownloadActivity.this, "Error updating accounts", Toast.LENGTH_SHORT).show();
+                        Log.e("ERR_UPDT", t.getMessage());
+                    }
+                });
+            } else if (getClicked.equals("route")) {
+                Call<Void> updateDownloaded = requestPlaceHolder.updateDisconnectionListByRoute(townCode.getText().toString(), period.getSelectedItem().toString(), routeCode.getText().toString());
+                updateDownloaded.enqueue(new Callback<Void>() {
+                    @Override
+                    public void onResponse(Call<Void> call, Response<Void> response) {
+                        if (response.isSuccessful()) {
+                            Log.e("UPDATE_SUCC", "Accounts Updated");
+                        } else {
+                            Toast.makeText(DownloadActivity.this, "Error updating accounts", Toast.LENGTH_SHORT).show();
+                            Log.e("ERR_UPDT_QRY", response.message() + "\n" + response.raw() + " \n" + response.body());
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(Call<Void> call, Throwable t) {
+                        Toast.makeText(DownloadActivity.this, "Error updating accounts", Toast.LENGTH_SHORT).show();
+                        Log.e("ERR_UPDT", t.getMessage());
+                    }
+                });
+            }
             Toast.makeText(DownloadActivity.this, "Disconnection list downloaded", Toast.LENGTH_SHORT).show();
             finish();
         }
@@ -304,6 +347,7 @@ public class DownloadActivity extends AppCompatActivity {
             super.onPostExecute(unused);
             if (settings != null) {
                 retrofitBuilder = new RetrofitBuilder(settings.getDefaultServer());
+                Log.e("ET", settings.getDefaultServer());
                 requestPlaceHolder = retrofitBuilder.getRetrofit().create(RequestPlaceHolder.class);
 
                 downloadRecyclerview = findViewById(R.id.downloadRecyclerview);
